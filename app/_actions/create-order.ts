@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { db } from "../_lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../_lib/auth";
-import { MercadoPagoConfig, Preference } from "mercadopago";
+import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 
 const mercadoPago = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
@@ -14,7 +16,7 @@ interface CreateOrderParams {
   userId: string;
   paymentMethod: string;
   shippingCost: number;
-  deliveryMethod: string;
+  deliveryMethod: string; 
   street?: string;
   neighborhood?: string;
   number?: string;
@@ -33,78 +35,47 @@ export const createOrder = async ({
   complement,
   cep,
 }: CreateOrderParams) => {
-  console.log(`✅ Criando pedido para usuário: ${userId}`);
+  console.log("✅ Criando pedido para usuário:", userId);
 
   const user = await getServerSession(authOptions);
   if (!user || user.user.id !== userId) {
     throw new Error("Usuário não autenticado ou não autorizado");
   }
 
-  // 🛑 REMOVE qualquer pedido "PENDING" anterior
-  const existingOrder = await db.order.findFirst({
-    where: { userId, status: "PENDING" },
-    include: { orderItems: true },
-  });
 
-  if (existingOrder) {
-    console.log(`🗑️ Pedido pendente encontrado: ${existingOrder.id}. Excluindo...`);
-
-    await db.orderItem.deleteMany({ where: { orderId: existingOrder.id } });
-    await db.order.delete({ where: { id: existingOrder.id } });
-
-    // Verificação após exclusão
-    const checkOrder = await db.order.findFirst({
-      where: { id: existingOrder.id },
-    });
-
-    if (!checkOrder) {
-      console.log(`✅ Pedido ${existingOrder.id} removido com sucesso.`);
-    } else {
-      console.error(`❌ ERRO: Pedido ${existingOrder.id} NÃO foi removido.`);
-      throw new Error("Erro ao remover pedido antigo.");
-    }
-  } else {
-    console.log("⚠️ Nenhum pedido 'PENDING' encontrado para este usuário.");
-  }
-
-  // ✅ CRIA UM NOVO PEDIDO DO ZERO
-  const newOrder = await db.order.create({
-    data: {
-      userId,
-      status: "PENDING",
-      shippingCost,
-      totalAmount: 0, // Atualizado após calcular o total
-      street: deliveryMethod === "entrega" ? street : null,
-      neighborhood: deliveryMethod === "entrega" ? neighborhood : null,
-      number: deliveryMethod === "entrega" ? number : null,
-      complement: deliveryMethod === "entrega" ? complement : null,
-      cep: deliveryMethod === "entrega" ? cep : null,
-    },
-  });
-
-  console.log(`🆕 Novo pedido criado: ${newOrder.id}`);
-
-  // Busca o pedido atualizado com os itens do usuário
   const order = await db.order.findFirst({
-    where: { userId, id: newOrder.id },
+    where: { userId, status: "PENDING" },
     include: { orderItems: { include: { product: true } } },
   });
 
-  if (!order) {
-    throw new Error("Erro ao buscar o pedido recém-criado.");
+  if (!order || order.orderItems.length === 0) {
+    throw new Error("Nenhum item no carrinho para finalizar o pedido");
   }
 
-  // 🔢 CALCULA O TOTAL DO PEDIDO
   const totalAmount = order.orderItems.reduce(
     (sum, item) => sum + Number(item.price) * item.quantity,
     0
   );
 
-  // Atualiza o pedido com o valor total
+  // Definição do endereço SOMENTE se for "entrega"
+  const addressData =
+    deliveryMethod === "entrega"
+      ? { street, neighborhood, number, complement, cep }
+      : {
+          street: null,
+          neighborhood: null,
+          number: null,
+          complement: null,
+          cep: null,
+        };
+
+  // Atualiza o pedido com os novos dados
   await db.order.update({
     where: { id: order.id },
     data: {
+      shippingCost,
       totalAmount: totalAmount + shippingCost,
+      ...addressData, // Só adiciona se for entrega
     },
   });
 
@@ -138,11 +109,13 @@ export const createOrder = async ({
         failure: `${process.env.NEXT_PUBLIC_URL}/payment-failure`,
         pending: `${process.env.NEXT_PUBLIC_URL}/payment-pending`,
       },
-      notification_url: `${process.env.NEXT_PUBLIC_URL}/api/webhook/mercadopago`,
+      notification_url:
+        "https://distribuidora-czk.vercel.app/api/webhook/mercadopago",
       auto_return: "approved",
       external_reference: order.id,
       payer: { email: user.user.email },
     };
+    
 
     console.log("✅ Criando pagamento no Mercado Pago:", preferenceData);
     const response = await new Preference(mercadoPago).create({ body: preferenceData });
@@ -159,7 +132,6 @@ export const createOrder = async ({
       },
     });
 
-    console.log(`💳 Pagamento criado no Mercado Pago - ID: ${mercadoPagoId}`);
   }
 
   revalidatePath("/orders");
