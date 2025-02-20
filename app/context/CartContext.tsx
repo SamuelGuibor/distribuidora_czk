@@ -1,7 +1,9 @@
 'use client';
 
 /* eslint-disable no-unused-vars */
-import React, { createContext, useState, ReactNode, useContext } from 'react';
+'use client';
+
+import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import { Product } from '@prisma/client';
 
 interface CartItem {
@@ -24,8 +26,23 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    // Tenta carregar do LocalStorage ao iniciar
+    if (typeof window !== "undefined") {
+      const storedCart = localStorage.getItem("cart");
+      return storedCart ? JSON.parse(storedCart) : [];
+    }
+    return [];
+  });
+
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Salva no LocalStorage sempre que o carrinho for atualizado
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cart", JSON.stringify(cartItems));
+    }
+  }, [cartItems]);
 
   const addToCart = (product: Product) => {
     setCartItems((prevItems) => {
@@ -39,7 +56,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prevItems, { product, quantity: 1 }];
     });
-    openCart(); // Abre o carrinho automaticamente
+    openCart();
   };
 
   const removeFromCart = (productId: string) => {

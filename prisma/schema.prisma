@@ -92,6 +92,11 @@ model Order {
   id           String   @id @default(cuid())
   userId       String
   shippingCost Float? // Certifique-se de que este campo está correto
+  street       String?
+  neighborhood String?
+  number       String?
+  complement   String?
+  cep          String?
   totalAmount  Float
   status       String   @default("PENDING") // status do pedido, ex: PENDING, PAID, SHIPPED, etc.
   createdAt    DateTime @default(now())
@@ -102,14 +107,17 @@ model Order {
   payments   Payment[] // Relacionamento com a tabela Payment
 }
 
+
 model Payment {
   id            String   @id @default(cuid())
   orderId       String
+  mercadoPagoId String?   @unique // <-- Novo campo para armazenar o ID do Mercado Pago
   amount        Float
-  paymentMethod String // Ex: CREDIT_CARD, PAYPAL, BANK_TRANSFER
+  paymentMethod String   // Ex: CREDIT_CARD, PAYPAL, BANK_TRANSFER
   status        String   @default("PENDING") // PENDING, COMPLETED, FAILED, etc.
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   order Order @relation(fields: [orderId], references: [id])
 }
+

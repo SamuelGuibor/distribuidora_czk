@@ -7,6 +7,7 @@ import FacebookProvider from "next-auth/providers/facebook"
 //import { EmailProvider } from "next-auth/providers/email"
 
 export const authOptions: AuthOptions = {
+  
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
     GoogleProvider({
