@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
 import { FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
+import { useRouter } from "next/navigation"; // Importação correta
+import { useSession } from "next-auth/react"; // Importação da sessão
 
 export default function ShoppingCart() {
   const { cartItems, removeFromCart, updateQuantity, getTotal } = useCart();
+  const router = useRouter();
+
+  // Obtendo a sessão do NextAuth
+  const { data: session } = useSession();
+  const userId = session?.user?.id; // Pega o id do usuário da sessão
 
   const handleRemove = async (productId: string) => {
     try {
@@ -12,6 +19,21 @@ export default function ShoppingCart() {
     } catch (error) {
       console.error("Erro ao remover item:", error);
       alert("Erro ao remover o item do pedido. Tente novamente.");
+    }
+  };
+
+  const handleFinalizeCart = async () => {
+    if (!userId) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+
+    try {
+      // Redireciona diretamente para a página de pagamento sem adicionar os itens ao banco
+      router.push("/payment"); // Certifique-se que a rota "/payment" existe
+    } catch (error) {
+      console.error("Erro ao finalizar o carrinho:", error);
+      alert("Houve um erro ao processar seu pedido. Tente novamente.");
     }
   };
 
@@ -66,6 +88,12 @@ export default function ShoppingCart() {
             Total: R$ {getTotal().toFixed(2)}
           </span>
         </div>
+        <button
+          onClick={handleFinalizeCart}
+          className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition duration-300"
+        >
+          Finalizar Compras
+        </button>
       </div>
     </div>
   );
