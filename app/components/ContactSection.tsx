@@ -1,29 +1,33 @@
-export default function ContactSection() {
+export default function Contato() {
   return (
-    <section id="contact" className="h-[650px] bg-black text-white py-[80px] text-center">
-      <div className="max-w-[800px] mx-auto space-y-[30px]">
-        <h2 className="text-[2.5rem] font-bold text-[#00bf63]">Contato</h2>
-        <p className="text-[1.1rem] leading-[1.8]">
-          Entre em contato conosco para dúvidas, sugestões ou pedidos. Estamos sempre à disposição!
-        </p>
-        <form className="space-y-[15px] max-w-[500px] mx-auto">
-          <div className="flex flex-col text-left">
-            <label htmlFor="name" className="text-[#00bf63] font-bold">Nome:</label>
-            <input type="text" id="name" name="name" placeholder="Seu nome" required className="w-full p-[10px] border border-[#00bf63] rounded focus:outline-none focus:border-[#008f4c]" />
-          </div>
-          <div className="flex flex-col text-left">
-            <label htmlFor="email" className="text-[#00bf63] font-bold">E-mail:</label>
-            <input type="email" id="email" name="email" placeholder="Seu e-mail" required className="w-full p-[10px] border border-[#00bf63] rounded focus:outline-none focus:border-[#008f4c]" />
-          </div>
-          <div className="flex flex-col text-left">
-            <label htmlFor="message" className="text-[#00bf63] font-bold">Mensagem:</label>
-            <textarea id="message" name="message" placeholder="Sua mensagem"  required className="w-full p-[10px] border border-[#00bf63] rounded focus:outline-none focus:border-[#008f4c]"></textarea>
-          </div>
-          <button type="submit" className="bg-[#00bf63] hover:bg-[#008f4c] text-white px-6 py-2 rounded text-[18px] font-bold uppercase">
-            Enviar
-          </button>
-        </form>
+    <div className="flex min-h-screen items-center justify-center bg-black px-4">
+      <div className="w-full max-w-md bg-black p-6 rounded-lg shadow-lg">
+        <h2 className="text-green-500 text-2xl font-bold text-center">Contato</h2>
+
+        <label className="block text-green-400 mt-4">Nome:</label>
+        <input
+          type="text"
+          placeholder="Seu nome"
+          className="w-full p-3 mt-1 border border-gray-600 bg-black text-white rounded-lg"
+        />
+
+        <label className="block text-green-400 mt-4">E-mail:</label>
+        <input
+          type="email"
+          placeholder="Seu e-mail"
+          className="w-full p-3 mt-1 border border-gray-600 bg-black text-white rounded-lg"
+        />
+
+        <label className="block text-green-400 mt-4">Mensagem:</label>
+        <textarea
+          placeholder="Sua mensagem"
+          className="w-full p-3 mt-1 border border-gray-600 bg-black text-white rounded-lg h-32"
+        ></textarea>
+
+        <button className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-4 mt-6 rounded-lg transition">
+          ENVIAR
+        </button>
       </div>
-    </section>
+    </div>
   );
 }

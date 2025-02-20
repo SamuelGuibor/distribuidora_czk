@@ -18,9 +18,7 @@ const ProductList = ({ searchQuery, onAddToCart }: ProductListProps) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const productsFromDb = await getProducts({
-          name: searchQuery,
-        })  
+        const productsFromDb = await getProducts({ name: searchQuery })
         setProducts(productsFromDb)
       } catch (error) { 
         console.error("Erro ao carregar produtos:", error)
@@ -30,20 +28,20 @@ const ProductList = ({ searchQuery, onAddToCart }: ProductListProps) => {
   }, [searchQuery])
 
   return (
-    <section className="products grid grid-cols-2 gap-4 p-4">
+    <section className="products grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
       {products.map((product) => (
-        <div key={product.id} className="product shadow-md rounded-lg p-4">
-          <div className="image-container">
+        <div key={product.id} className="product bg-white shadow-md rounded-lg p-4 flex flex-col items-center">
+          <div className="image-container w-full flex justify-center">
             <Image
               alt={product.name}
               src={product.imageUrl}
               width={150}
               height={150}
-              className="rounded-lg object-cover"
+              className="rounded-lg object-cover w-full max-w-[150px]"
             />
           </div>
-          <h4 className="font-bold text-[13px] mt-2">{product.name}</h4>
-          <p className="text-sm text-gray-600">{product.description}</p>
+          <h4 className="font-bold text-[14px] mt-2 text-center">{product.name}</h4>
+          <p className="text-sm text-gray-600 text-center">{product.description}</p>
           <p className="font-bold text-lg mt-2">
             {Intl.NumberFormat("pt-BR", {
               style: "currency",
@@ -53,10 +51,10 @@ const ProductList = ({ searchQuery, onAddToCart }: ProductListProps) => {
           <Button
             variant="secondary"
             size="lg"
-            className="mt-2"
-            onClick={() => onAddToCart(product)} // Passa o produto para o onAddToCart
+            className="mt-3 flex items-center justify-center w-full max-w-[150px]"
+            onClick={() => onAddToCart(product)}
           >
-            <FaCartPlus size={17} />
+            <FaCartPlus size={17} className="mr-2" /> Adicionar
           </Button>
         </div>
       ))}
