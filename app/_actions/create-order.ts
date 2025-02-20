@@ -109,7 +109,7 @@ export const createOrder = async ({
         pending: `${process.env.NEXT_PUBLIC_URL}/payment-pending`,
       },
       notification_url:
-        "https://8763-187-52-241-199.ngrok-free.app/api/webhook/mercadopago",
+        "http://localhost:3000/api/webhook/mercadopago",
       auto_return: "approved",
       external_reference: order.id,
       payer: { email: user.user.email },
