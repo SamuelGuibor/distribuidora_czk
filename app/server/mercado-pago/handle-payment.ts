@@ -27,30 +27,30 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
     }
 
     if (status === "approved") {
-    await db.payment.update({
-      where: { id: existingPayment.id },
-      data: {
-        mercadoPagoId: paymentId, // Agora salvamos o ID correto do pagamento!
-        status: "COMPLETED",
-        updatedAt: new Date(),
-      },
-    });
+      await db.payment.update({
+        where: { id: existingPayment.id },
+        data: {
+          mercadoPagoId: paymentId, // Agora salvamos o ID correto do pagamento!
+          status: "COMPLETED",
+          updatedAt: new Date(),
+        },
+      });
 
-    console.log(`✅ Pagamento ${paymentId} atualizado para COMPLETED.`);
+      console.log(`✅ Pagamento ${paymentId} atualizado para COMPLETED.`);
 
-    await db.order.update({
-      where: { id: orderId },
-      data: {
-        status: "PAID",
-      },
-    });
+      await db.order.update({
+        where: { id: orderId },
+        data: {
+          status: "PAID",
+        },
+      });
     }
     else if (status === "failure" || status === "cancelled") {
-        await db.orderItem.deleteMany({ where: { orderId } });
-        await db.order.delete({ where: { id: orderId } });
-  
-        console.log(`❌ Pedido ${orderId} cancelado devido a falha no pagamento.`);
-      }
+      await db.orderItem.deleteMany({ where: { orderId } });
+      await db.order.delete({ where: { id: orderId } });
+
+      console.log(`❌ Pedido ${orderId} cancelado devido a falha no pagamento.`);
+    }
 
     console.log(`✅ Pedido ${orderId} atualizado para PAID.`);
 

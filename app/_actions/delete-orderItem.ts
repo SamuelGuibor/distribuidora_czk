@@ -4,22 +4,25 @@ import { db } from "../_lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../_lib/auth";
 
-export const getOrderItemByProduct = async (productId: string) => {
+export const cancelOrder = async () => {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     throw new Error("Usuário não autenticado");
   }
 
-  const orderItem = await db.orderItem.findFirst({
-    where: {
-      productId,
-      order: {
-        userId: session.user.id, // Filtra pelo usuário logado
-        status: "PENDING", // Garante que está dentro de um pedido pendente
-      },
-    },
-    select: { id: true },
-  });
+  try {
+    const order = await db.order.findFirst({
+      where: { userId: session.user.id, status: "PENDING" },
+    });
 
-  return orderItem;
+    if (order) {
+      await db.orderItem.deleteMany({ where: { orderId: order.id } });
+      await db.order.delete({ where: { id: order.id } });
+
+      console.log(`❌ Pedido ${order.id} cancelado por abandono da página.`);
+    }
+  } catch (error) {
+    console.error("Erro ao cancelar pedido:", error);
+    throw new Error("Erro ao cancelar pedido");
+  }
 };

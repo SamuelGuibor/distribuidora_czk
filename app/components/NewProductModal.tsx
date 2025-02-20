@@ -8,9 +8,7 @@ import { deleteProduct } from "../_actions/delete-product";
 import { updateProduct } from "../_actions/update-product";
 import { getProducts } from "../_actions/get-product";
 import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Prisma } from "@prisma/client";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "sonner"
@@ -40,7 +38,7 @@ const NewProductModal: React.FC<ModalProps> = ({ onClose, onCreate, onEdit, onDe
     name: "",
     description: "",
     imageUrl: "",
-    price: "10",
+    price: "",
     stock: 0,
   });
 
