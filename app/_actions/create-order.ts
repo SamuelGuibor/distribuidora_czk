@@ -16,7 +16,7 @@ interface CreateOrderParams {
   userId: string;
   paymentMethod: string;
   shippingCost: number;
-  deliveryMethod: string; // Novo campo para definir se é retirada ou entrega
+  deliveryMethod: string; 
   street?: string;
   neighborhood?: string;
   number?: string;
@@ -109,7 +109,7 @@ export const createOrder = async ({
         pending: `${process.env.NEXT_PUBLIC_URL}/payment-pending`,
       },
       notification_url:
-        "http://localhost:3000/api/webhook/mercadopago",
+        "https://distribuidora-czk.vercel.app/api/webhook/mercadopago",
       auto_return: "approved",
       external_reference: order.id,
       payer: { email: user.user.email },
