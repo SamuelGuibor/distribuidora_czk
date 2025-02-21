@@ -25,9 +25,9 @@ export function CheckoutButton() {
       alert("Usuário não autenticado! Faça login para continuar.");
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
       const response = await createOrder({
         userId,
@@ -42,7 +42,7 @@ export function CheckoutButton() {
           cep,
         }),
       });
-
+  
       if (response.paymentUrl) {
         window.location.href = response.paymentUrl;
       } else {
@@ -51,7 +51,7 @@ export function CheckoutButton() {
     } catch (error) {
       alert("Erro ao iniciar pagamento." + error);
     }
-
+  
     setLoading(false);
   };
 
@@ -104,7 +104,7 @@ export function CheckoutButton() {
 
         {deliveryMethod === "entrega" && (
           <div className="mt-4">
-            <Input
+            <Input 
               placeholder="Digite seu CEP"
               value={cep}
               onChange={(e) => setCep(e.target.value)}
@@ -115,25 +115,25 @@ export function CheckoutButton() {
             />
             <p className="text-white mt-2">Frete: <span className="font-semibold">R$ {shippingCost.toFixed(2)}</span></p>
 
-            <Input
+            <Input 
               placeholder="Rua"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
               className="mt-2"
             />
-            <Input
+            <Input 
               placeholder="Bairro"
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value)}
               className="mt-2"
             />
-            <Input
+            <Input 
               placeholder="Número"
               value={number}
               onChange={(e) => setNumber(e.target.value)}
               className="mt-2"
             />
-            <Input
+            <Input 
               placeholder="Complemento (opcional)"
               value={complement}
               onChange={(e) => setComplement(e.target.value)}
@@ -142,11 +142,13 @@ export function CheckoutButton() {
           </div>
         )}
 
-        <div className="max-w-lg mx-auto p-6 bg-[#1e1e2e] shadow-lg rounded-lg mt-20 top-32 relative">
-          <Button onClick={handleCheckout} disabled={loading || !userId} className="w-full mt-6 bg-[#d62828]">
-            {loading ? "Carregando..." : userId ? "Pagar com Mercado Pago" : "Faça login para continuar"}
-          </Button>
-        </div>
+        <Button 
+          onClick={handleCheckout} 
+          disabled={loading || !userId} 
+          className="w-full mt-6 bg-[#d62828]"
+        >
+          {loading ? "Carregando..." : userId ? "Pagar com Mercado Pago" : "Faça login para continuar"}
+        </Button>
       </div>
     </div>
   );
