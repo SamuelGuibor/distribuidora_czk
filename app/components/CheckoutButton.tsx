@@ -7,12 +7,10 @@ import Header from "../components/header";
 import { Select, SelectItem, SelectTrigger, SelectContent, SelectValue } from "../components/ui/select";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { useCart } from "../context/CartContext";
 
 export function CheckoutButton() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const { cartItems } = useCart();
   const [loading, setLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("retirada");
   const [cep, setCep] = useState("");
@@ -29,7 +27,6 @@ export function CheckoutButton() {
     }
 
     setLoading(true);
-    sessionStorage.setItem("cart", JSON.stringify(cartItems));
 
     try {
       const response = await createOrder({

@@ -23,50 +23,40 @@ export const addOrderItem = async ({
     throw new Error("Usuário não autenticado ou não autorizado");
   }
 
-  // 🛑 Verifica se há um pedido "PENDING" e cancela antes de criar um novo
-  const existingOrder = await db.order.findFirst({
+  // Verifica se já existe um pedido pendente
+  let order = await db.order.findFirst({
     where: { userId, status: "PENDING" },
-    include: { orderItems: true },
   });
 
-  if (existingOrder) {
-    console.log(`🗑️ Cancelando pedido pendente: ${existingOrder.id}`);
-
-    await db.orderItem.deleteMany({ where: { orderId: existingOrder.id } });
-    await db.order.delete({ where: { id: existingOrder.id } });
-
-    console.log(`❌ Pedido ${existingOrder.id} cancelado antes de criar um novo.`);
+  // Caso não exista, cria um novo pedido com status "PENDING"
+  if (!order) {
+    order = await db.order.create({
+      data: {
+        userId,
+        status: "PENDING",
+        totalAmount: 0, // Inicialmente 0, será atualizado depois
+      },
+    });
   }
 
-  // ✅ Cria um novo pedido "PENDING"
-  const newOrder = await db.order.create({
-    data: {
-      userId,
-      status: "PENDING",
-      totalAmount: 0, // Atualizado depois
-    },
-  });
-
-  console.log(`🆕 Novo pedido criado: ${newOrder.id}`);
-
-  // ✅ Cria o item dentro do novo pedido
+  // Cria o item no pedido
   const orderItem = await db.orderItem.create({
     data: {
-      orderId: newOrder.id,
+      orderId: order.id,
       productId,
       quantity,
       price,
     },
   });
 
-  // 🔢 Atualiza o total do pedido
+  // Atualiza o valor total do pedido
   const totalAmount = await db.orderItem.aggregate({
-    where: { orderId: newOrder.id },
+    where: { orderId: order.id },
     _sum: { price: true },
   });
 
   await db.order.update({
-    where: { id: newOrder.id },
+    where: { id: order.id },
     data: {
       totalAmount: totalAmount._sum.price ?? 0,
     },
