@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../components/header2";
 import Sidebar from "../components/Sidebar";
 import ProductList from "../components/ProductList";
@@ -12,6 +12,7 @@ import { createProduct } from "../_actions/create-product";
 import { deleteProduct } from '../_actions/delete-product';
 import { updateProduct } from "../_actions/update-product";
 import { CiCircleMore } from "react-icons/ci";
+import { getFilteredProducts } from "../_actions/productaActions";
 
 export default function Produtos() {
   const { data: session } = useSession();
@@ -19,6 +20,10 @@ export default function Produtos() {
   const [isCreateProductModalOpen, setCreateProductModalOpen] = useState(false);  // Controle para o modal de criação de produto
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    getFilteredProducts().then(setProducts);
+  }, []);
 
   const handleAddToCart = (product: Product) => {
     setSelectedProduct(product);
@@ -61,7 +66,11 @@ export default function Produtos() {
       alert("Erro ao excluir produto!" + error);
     }
   };
+  const [products, setProducts] = useState([]);
 
+  const handleFilter = (filteredProducts: Product[]) => {
+    setProducts(filteredProducts);
+  };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -93,9 +102,9 @@ export default function Produtos() {
       </div>
 
       <div className="flex pt-8 bg-gray-100 px-10 rounded-sm">
-        <Sidebar />
+        <Sidebar onFilter={handleFilter}/>
         <div className="flex-1">
-          <ProductList onAddToCart={handleAddToCart} searchQuery={searchQuery} />
+          <ProductList onAddToCart={handleAddToCart} searchQuery={searchQuery} products={products}/>
         </div>
       </div>
 

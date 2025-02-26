@@ -1,43 +1,49 @@
-'use client'
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Table } from "../components/ui/table";
-import { Badge } from "../components/ui/badge";
 import { Card, CardContent } from "../components/ui/card";
 import Header from "../components/header2";
+import { getOrders } from "../_actions/get-order";
+import { getSession } from "next-auth/react";
 
-const initialOrders = [
-  {
-    id: 1,
-    item: "Pizza Margherita",
-    valor: "R$ 35,00",
-    pagamento: "Cartão de Crédito",
-    tipo: "Entrega",
-    cliente: "João Silva",
-    status: "Em andamento",
-  },
-  {
-    id: 2,
-    item: "Hambúrguer Artesanal",
-    valor: "R$ 25,00",
-    pagamento: "Pix",
-    tipo: "Retirada",
-    cliente: "Maria Oliveira",
-    status: "Entregue",
-  },
-];
+interface Order {
+  id: string;
+  total: number;
+  isDelivery: boolean;
+  address?: {
+    street: string;
+    neighborhood: string;
+    number: string;
+    complement?: string;
+    cep: string;
+  };
+  items: {
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
+  user: {
+    name: string;
+  };
+}
 
 export default function OrdersList() {
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  const toggleStatus = (id) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === id
-          ? { ...order, status: order.status === "Entregue" ? "Em andamento" : "Entregue" }
-          : order
-      )
-    );
-  };
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const session = await getSession();
+        const data = await getOrders({ userId: session?.user.id });
+        setOrders(data);
+      } catch (error) {
+        console.error("Erro ao buscar pedidos:", error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   return (
     <div>
@@ -48,42 +54,54 @@ export default function OrdersList() {
             <h2 className="text-xl font-bold mb-4 pt-2">Pedidos</h2>
             <Table>
               <thead>
-                <tr>
+                <tr className="text-white">
+                  <th className="p-2 text-left">Cliente</th>
                   <th className="p-2 text-left">Item</th>
                   <th className="p-2 text-left">Valor</th>
-                  <th className="p-2 text-left">Pagamento</th>
                   <th className="p-2 text-left">Tipo</th>
-                  <th className="p-2 text-left">Cliente</th>
-                  <th className="p-2 text-left">Status</th>
-                  <th className="p-2 text-left">Ação</th>
+                  <th className="p-2 text-left">Endereço</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id} className="border-b">
-                    <td className="p-2">{order.item}</td>
-                    <td className="p-2">{order.valor}</td>
-                    <td className="p-2">{order.pagamento}</td>
-                    <td className="p-2">{order.tipo}</td>
-                    <td className="p-2">{order.cliente}</td>
+                  <tr key={order.id} className="border-b border-gray-700">
+                    {/* CLIENTE EM AZUL */}
+                    <td className="p-2 font-bold text-blue-400">{order.user.name}</td>
+
                     <td className="p-2">
-                      <Badge
-                        className={
-                          order.status === "Entregue"
-                            ? "bg-green-500 text-white"
-                            : "bg-yellow-500 text-white"
-                        }
-                      >
-                        {order.status}
-                      </Badge>
+                      {order.items.map((item) => (
+                        <div key={item.name}>
+                          {item.name} (x{item.quantity})
+                        </div>
+                      ))}
                     </td>
+
+                    {/* VALOR EM NEGRITO E VERDE */}
+                    <td className="p-2 font-bold text-green-400">
+                      R$ {order.total.toFixed(2)}
+                    </td>
+
+                    {/* ENTREGA OU RETIRADA */}
+                    <td className="p-2 font-bold text-gray-300">
+                      {order.isDelivery ? "Entrega" : "Retirada"}
+                    </td>
+
+                    {/* ENDEREÇO EM VERDE SE FOR ENTREGA */}
                     <td className="p-2">
-                      <button
-                        onClick={() => toggleStatus(order.id)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded"
-                      >
-                        Alterar Status
-                      </button>
+                      {order.isDelivery && order.address ? (
+                        <div className="text-green-400 font-semibold">
+                          {order.address.street}, {order.address.number}
+                          <br />
+                          {order.address.neighborhood}
+                          <br />
+                          {order.address.cep}
+                          {order.address.complement && (
+                            <div>Complemento: {order.address.complement}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">N/A</span>
+                      )}
                     </td>
                   </tr>
                 ))}

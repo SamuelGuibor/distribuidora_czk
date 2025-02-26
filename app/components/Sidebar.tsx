@@ -1,66 +1,94 @@
-"use client"
-import { useState } from "react"
-import { FaFilter, FaTimes } from "react-icons/fa"
+"use client";
 
-export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false)
+import { useState, useEffect, useTransition } from "react";
+import { getCategories, getFilteredProducts } from "../_actions/productaActions";
+import { Product } from "@prisma/client";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Slider } from "../components/ui/slider";
+import { FaFilter } from "react-icons/fa";
+
+interface SidebarProps {
+  onFilter: (products: Product[]) => void;
+}
+
+export default function Sidebar({ onFilter }: SidebarProps) {
+  const [categories, setCategories] = useState<string[]>(["Todas"]);
+  const [selectedCategory, setSelectedCategory] = useState("Todas");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    getCategories().then((fetchedCategories) => {
+      console.log("Categorias carregadas:", fetchedCategories); // 🛠️ DEBUG
+      setCategories(["Todas", ...fetchedCategories]);
+    });
+  }, []);
+
+  const applyFilters = () => {
+    startTransition(async () => {
+      const [minPrice, maxPrice] = priceRange;
+      const filteredProducts = await getFilteredProducts(
+        selectedCategory !== "Todas" ? selectedCategory : undefined,
+        minPrice,
+        maxPrice
+      );
+      console.log("Produtos filtrados:", filteredProducts); // 🛠️ DEBUG
+      onFilter(filteredProducts);
+    });
+  };
 
   return (
-    <>
-      {/* Botão para abrir o filtro no mobile */}
-      <button
-        className="md:hidden flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-lg fixed top-40 left-4 z-50 "
-        onClick={() => setIsOpen(true)}
+    <aside className="w-full md:w-64 bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+      {/* Título */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-800">Filtrar Produtos</h2>
+        <FaFilter className="text-gray-500" />
+      </div>
+
+      {/* Seletor de Categoria */}
+      <div className="mt-4">
+        <label className="text-sm font-medium text-gray-700">Categoria</label>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full mt-2">
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent className=" border-gray-300 rounded-md shadow-md">
+            {categories.map((category) => (
+              <SelectItem key={category} value={category} className="hover:bg-gray-100">
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Filtro de Preço */}
+      <div className="mt-6">
+        <label className="text-sm font-medium text-gray-700">Faixa de Preço</label>
+        <Slider
+          className="mt-2"
+          min={0}
+          max={2000}
+          step={10}
+          value={priceRange}
+          onValueChange={(values) => setPriceRange(values as [number, number])}
+        />
+        <div className="flex justify-between text-sm text-gray-500 mt-2">
+          <span>R$ {priceRange[0]}</span>
+          <span>R$ {priceRange[1]}</span>
+        </div>
+      </div>
+
+      {/* Botão de Aplicar Filtros */}
+      <Button
+        onClick={applyFilters}
+        disabled={isPending}
+        className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white"
       >
-        <FaFilter /> Filtrar
-      </button>
-
-      {/* Sidebar principal */}
-      <aside
-        className={`sidebar bg-white shadow-md p-4 fixed md:static top-0 left-0 w-64 h-full md:h-auto z-50 transform transition-transform ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
-      >
-        {/* Botão de fechar no mobile */}
-        <button
-          className="md:hidden absolute top-4 right-4 text-gray-800"
-          onClick={() => setIsOpen(false)}
-        >
-          <FaTimes size={20} />
-        </button>
-
-        <h3 className="text-lg font-bold">Filtrar por</h3>
-
-        <div className="filter mt-4">
-          <h4 className="font-semibold">Categoria</h4>
-          <label><input type="radio" name="categoria" value="alcoholic" defaultChecked /> Alcoólicas</label>
-          <label><input type="radio" name="categoria" value="non-alcoholic" /> Não Alcoólicas</label>
-          <label><input type="radio" name="categoria" value="snacks" /> Snacks</label>
-          <label><input type="radio" name="categoria" value="desserts" /> Sobremesas</label>
-        </div>
-
-        <div className="filter mt-4">
-          <h4 className="font-semibold">Preço</h4>
-          <input type="range" min="0" max="2000" step="1" className="w-full" />
-          <div className="text-sm text-gray-600">R$ 0 - R$ 2000</div>
-        </div>
-
-        <div className="filter mt-4">
-          <h4 className="font-semibold">Marca</h4>
-          <label><input type="checkbox" name="marca" value="marca1" /> Marca 1</label>
-          <label><input type="checkbox" name="marca" value="marca2" /> Marca 2</label>
-          <label><input type="checkbox" name="marca" value="marca3" /> Marca 3</label>
-          <label><input type="checkbox" name="marca" value="marca4" /> Marca 4</label>
-        </div>
-      </aside>
-
-      {/* Fundo escuro quando o menu está aberto */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
-        ></div>
-      )}
-    </>
-  )
+        {isPending ? "Filtrando..." : "Aplicar Filtros"}
+      </Button>
+    </aside>
+  );
 }

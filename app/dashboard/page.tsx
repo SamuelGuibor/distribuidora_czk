@@ -23,6 +23,11 @@ import { Calendar } from "../components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Header from "../components/header2";
+import { createPayment } from "../_actions/create-payments"
+import { getPayments } from "../_actions/get-payment";
+import { updatePaymentStatus } from "../_actions/upload-payment";
+import { deletePayment } from "../_actions/delete.payment";
+
 
 const Dashboard = () => {
     return (
@@ -36,16 +41,30 @@ const Dashboard = () => {
 };
 
 const AccountsPayable = () => {
-    const [bills, setBills] = useState([
-        { id: 1, fornecedor: "Fornecedor A", valor: 300.0, validade: "2025-02-10", pago: false },
-    ]);
+    const [bills, setBills] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newBill, setNewBill] = useState({ fornecedor: "", valor: "", validade: "", pago: false });
     const [selectedType, setSelectedType] = useState("");
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const totalPaid = bills.reduce((acc, bill) => (bill.pago ? acc + bill.valor : acc), 0);
-    const totalValue = bills.reduce((acc, bill) => (!bill.pago ? acc + bill.valor : acc), 0);
+
+
+    useEffect(() => {
+        const fetchBills = async () => {
+            try {
+                const data = await getPayments();
+                setBills(data);
+            } catch (error) {
+                console.error("Erro ao buscar contas a pagar:", error);
+            }
+        };
+
+        fetchBills();
+    }, []);
+
+    const totalPaid = bills.reduce((acc, bill) => (bill.pago ? acc + Number(bill.valor) : acc), 0);
+    const totalValue = bills.reduce((acc, bill) => (!bill.pago ? acc + Number(bill.valor) : acc), 0);
+
 
     const openModal = (type) => {
         setSelectedType(type);
@@ -53,17 +72,52 @@ const AccountsPayable = () => {
         setShowModal(true);
     };
 
-    const addBill = () => {
-        setBills([...bills, { id: bills.length + 1, ...newBill, valor: parseFloat(newBill.valor) }]);
-        setShowModal(false);
+    const deleteBill = async (id: string) => {
+        try {
+            await deletePayment(id); // Remove do banco
+            setBills((prevBills) => prevBills.filter((bill) => bill.id !== id)); // Atualiza estado
+        } catch (error) {
+            console.error("Erro ao excluir conta:", error);
+            alert("Erro ao excluir conta.");
+        }
     };
 
-    const togglePaymentStatus = (id) => {
-        setBills(bills.map((bill) => (bill.id === id ? { ...bill, pago: !bill.pago } : bill)));
+    const addBill = async () => {
+        if (!newBill.fornecedor || !newBill.valor || !newBill.validade) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+
+        const newPayable = {
+            id: crypto.randomUUID(), // Gera um ID único
+            fornecedor: newBill.fornecedor,
+            valor: parseFloat(newBill.valor),
+            validade: new Date(newBill.validade),
+            pago: false,
+        };
+
+        try {
+            await createPayment(newPayable);
+            setShowModal(false);
+        } catch (error) {
+            console.error("Erro ao criar conta a pagar:", error);
+            alert("Erro ao adicionar conta a pagar");
+        }
     };
 
-    const deleteBill = (id) => {
-        setBills(bills.filter((bill) => bill.id !== id));
+    const togglePaymentStatus = async (id: string, currentStatus: boolean) => {
+        try {
+            const newStatus = !currentStatus; // Alterna entre pago/não pago
+            await updatePaymentStatus(id, newStatus);
+            setBills((prevBills) =>
+                prevBills.map((bill) =>
+                    bill.id === id ? { ...bill, pago: newStatus } : bill
+                )
+            );
+        } catch (error) {
+            console.error("Erro ao atualizar status de pagamento:", error);
+            alert("Erro ao atualizar pagamento.");
+        }
     };
 
 
@@ -80,7 +134,7 @@ const AccountsPayable = () => {
                             <DropdownMenuContent>
                                 <DropdownMenuLabel>Opções</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => openModal("Manual")}>
+                                <DropdownMenuItem onClick={() => setShowModal(true)}>
                                     Adicionar Manualmente
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -102,21 +156,21 @@ const AccountsPayable = () => {
                             <TableBody>
                                 {bills.map((bill) => (
                                     <TableRow key={bill.id}>
-                                        <TableCell className="w-1/4">{bill.fornecedor}</TableCell>
-                                        <TableCell className="w-1/4">R$ {bill.valor.toFixed(2)}</TableCell>
-                                        <TableCell className="w-1/4">{new Date(bill.validade).toLocaleDateString("pt-BR")}</TableCell>
-                                        <TableCell
-                                            className="w-1/4 cursor-pointer text-center"
-                                            onClick={() => togglePaymentStatus(bill.id)}
-                                        >
+                                        <TableCell>{bill.fornecedor}</TableCell>
+                                        <TableCell>{Intl.NumberFormat("pt-BR", {
+                                            style: "currency",
+                                            currency: "BRL",
+                                        }).format(Number(bill.valor))}</TableCell>
+                                        <TableCell>{new Date(bill.validade).toLocaleDateString("pt-BR")}</TableCell>
+                                        <TableCell className="text-center cursor-pointer" onClick={() => togglePaymentStatus(bill.id, bill.pago)}>
                                             <span className={bill.pago ? "text-green-500" : "text-red-500"}>
                                                 {bill.pago ? "Pago" : "Não Pago"}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="w-1/6 text-right">
+                                        <TableCell className="text-right">
                                             <FaRegTrashAlt
                                                 size={20}
-                                                className="cursor-pointer text-red-500 inline-block"
+                                                className="cursor-pointer text-red-500"
                                                 onClick={() => deleteBill(bill.id)}
                                             />
                                         </TableCell>
@@ -124,13 +178,15 @@ const AccountsPayable = () => {
                                 ))}
                             </TableBody>
                         </Table>
-
                     </div>
 
                     {/* Resumo financeiro */}
                     <div className="mt-4 bg-gray-900 p-4 rounded-md text-lg font-semibold flex justify-between">
                         <p>Total de Despesas Gastas: <span className="text-green-500">R$ {totalPaid.toFixed(2)}</span></p>
-                        <p>Total a Pagar: <span className="text-red-500">R$ {totalValue.toFixed(2)}</span></p>
+                        <p>Total a Pagar: <span className="text-red-500">R$ {Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                        }).format(Number(totalValue))}</span></p>
                     </div>
                 </CardContent>
             </Card>
@@ -157,7 +213,7 @@ const AccountsPayable = () => {
                         <input
                             type="number"
                             placeholder="Valor"
-                            className="w-full p-2 mb-2 bg-gray-600 rounded-md"
+                            className="w-full p-2 mb-2 bg-gray-600 rounded-md appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-moz-appearance]:textfield"
                             value={newBill.valor}
                             onChange={(e) => setNewBill({ ...newBill, valor: e.target.value })}
                         />

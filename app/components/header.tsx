@@ -51,7 +51,7 @@ export default function Header() {
         </Link>
         <Link
           href="/"
-          onClick={(e) => handleNavigation(e, "/", "#contact")}
+          onClick={(e) => handleNavigation(e, "/", "#contato")}
           className="text-black text-[15px] sm:text-[17px] uppercase font-bold hover:text-white whitespace-nowrap"
         >
           Contato

@@ -107,7 +107,6 @@ model Order {
   payments   Payment[] // Relacionamento com a tabela Payment
 }
 
-
 model Payment {
   id            String   @id @default(cuid())
   orderId       String
@@ -121,3 +120,19 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id])
 }
 
+model AccountPayable {
+  id          String      @id @default(cuid())
+  fornecedor  String
+  valor       Decimal
+  validade    DateTime
+  pago        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Sale {
+  id        String      @id @default(cuid())
+  product   String
+  value     Decimal
+  payment   String
+  createdAt DateTime @default(now())
+}

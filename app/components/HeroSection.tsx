@@ -25,11 +25,11 @@ export default function HeroSection() {
       {/* Imagem à direita (oculta no mobile) */}
       <div className="hidden md:block">
         <Image 
-          src="/balde.jpg" 
+          src="/image.png" 
           alt="Balde de Bebidas" 
-          width={400} 
-          height={400} 
-          className="rounded-lg shadow-lg"
+          width={350} 
+          height={300} 
+          className="rounded-full right-40 relative shadow-[color:#00bf63] shadow-xl"
         />
       </div>
     </section>

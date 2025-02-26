@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 "use client";
 
-import React, { createContext, useState, useEffect, ReactNode, useContext } from "react";
+import React, { createContext, useState, ReactNode, useContext } from "react";
 import { Product } from "@prisma/client";
 
 interface CartItem {
@@ -26,22 +26,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const storedCart = sessionStorage.getItem("cart") || localStorage.getItem("cart");
-      return storedCart ? JSON.parse(storedCart) : [];
-    }
-    return [];
-  });
-
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("cart", JSON.stringify(cartItems));
-      localStorage.setItem("cart", JSON.stringify(cartItems));
-    }
-  }, [cartItems]);
 
   const addToCart = (product: Product) => {
     setCartItems((prevItems) => {
@@ -55,6 +41,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
     openCart();
   };
+
 
   const removeFromCart = (productId: string) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));

@@ -28,7 +28,7 @@ export const addOrderItem = async ({
     where: { userId, status: "PENDING" },
   });
 
-  // Caso não exista, cria um novo pedido com status "PENDING"
+  // Se não existir um pedido pendente, cria um novo
   if (!order) {
     order = await db.order.create({
       data: {
@@ -39,8 +39,8 @@ export const addOrderItem = async ({
     });
   }
 
-  // Cria o item no pedido
-  const orderItem = await db.orderItem.create({
+  // Adiciona o item ao pedido existente
+  await db.orderItem.create({
     data: {
       orderId: order.id,
       productId,
@@ -49,7 +49,7 @@ export const addOrderItem = async ({
     },
   });
 
-  // Atualiza o valor total do pedido
+  // Atualiza o total do pedido
   const totalAmount = await db.orderItem.aggregate({
     where: { orderId: order.id },
     _sum: { price: true },
@@ -63,5 +63,5 @@ export const addOrderItem = async ({
   });
 
   revalidatePath("/cart");
-  return orderItem;
+  return order;
 };

@@ -8,25 +8,10 @@ const SignInDialog = () => {
   const handleLoginWithGoogleClick = () => signIn("google")
   return (
     <>
-      <DialogHeader>
+      <DialogHeader className="h-11">
         <DialogTitle>Faça login na plataforma</DialogTitle>
-        <DialogDescription>
-          Entre com um email ou utilizando outra conta
-        </DialogDescription>
+        <hr className="top-3 relative bg-white" />
       </DialogHeader>
-
-      <Input placeholder="email" />
-      <Input placeholder="senha" />
-
-      <Button variant="outline" className="gap-1 bg-blue-400 font-bold">
-        Login
-      </Button>
-
-      <div className="flex items-center">
-        <div className="h-[1px] flex-grow bg-gray-400"></div>
-        <span className="p-4 text-gray-400">ou</span>
-        <div className="h-[1px] flex-grow bg-gray-400"></div>
-      </div>
 
       <Button
         variant="outline"
@@ -41,19 +26,6 @@ const SignInDialog = () => {
         />
         Google
       </Button>
-      {/* <Button
-        variant="outline"
-        className="gap-1 font-bold"
-        onClick={handleLoginWithFacebookClick}
-      >
-        <Image
-          alt="Fazer login com Facebook"
-          src="/facebook.png"
-          width={18}
-          height={18}
-        />
-        FaceBook
-      </Button> */}
     </>
   )
 }

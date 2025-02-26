@@ -41,6 +41,26 @@
   }
 }
 
+/* Scrollbar Customizada */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 6px; /* Largura menor para ficar discreto */
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #2a2a3a; /* Cor do fundo do scroll */
+  border-radius: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #d62828; /* Cor da barra de rolagem */
+  border-radius: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: #ff3b3b; /* Cor quando passa o mouse */
+}
+
+
 @layer base {
   * {
     border-color: hsl(var(--border)); /* Define a cor da borda usando a variável */
@@ -61,6 +81,8 @@
     @apply bg-background text-foreground; /* Usa as variáveis definidas */
   }
 }
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Raleway:ital,wght@0,100..900;1,100..900&family=Shrikhand&display=swap');
 
 
 .sidebar {
@@ -486,4 +508,13 @@
   display: flex;
   flex-direction: column; /* Itens empilhados */
   gap: 15px; /* Espaçamento entre os itens */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
