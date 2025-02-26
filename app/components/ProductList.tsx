@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+
+
 "use client";
 
 import { Product } from "@prisma/client";
