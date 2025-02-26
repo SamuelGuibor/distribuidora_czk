@@ -18,7 +18,7 @@ export function CheckoutButton() {
   const [loading, setLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("retirada");
   const [cep, setCep] = useState("");
-  const [shippingCost, setShippingCost] = useState(0);
+  const [shippingCost] = useState(0);
   const [street, setStreet] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [number, setNumber] = useState("");

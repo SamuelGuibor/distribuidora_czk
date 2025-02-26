@@ -49,13 +49,12 @@ const NewProductModal: React.FC<ModalProps> = ({ onClose, onCreate, onEdit, onDe
       const data = await getProducts({});
       setProducts(data);
 
-      // Definir automaticamente um produto válido ao carregar
       if (data.length > 0 && !selectedProductId) {
         setSelectedProductId(data[0].id);
       }
     };
     fetchProducts();
-  }, []);
+  }, [selectedProductId]);
 
 
   useEffect(() => {
