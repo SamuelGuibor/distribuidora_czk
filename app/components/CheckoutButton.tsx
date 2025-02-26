@@ -26,10 +26,19 @@ export function CheckoutButton() {
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
-    if (userId) {
-      fetchOrder();
-    }
+    if (!userId) return;
+  
+    const fetchOrder = async () => {
+      setLoading(true);
+      const orders = await getPendingOrders({ userId });
+      const pendingOrder = orders.find(order => order.status === "PENDING");
+      setOrder(pendingOrder || null);
+      setLoading(false);
+    };
+  
+    fetchOrder();
   }, [userId]);
+  
 
   const fetchOrder = async () => {
     setLoading(true);

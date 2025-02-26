@@ -11,7 +11,7 @@ interface ProductListProps {
   products: Product[]; // Recebe os produtos corretamente
 }
 
-const ProductList = ({ onAddToCart, products }: ProductListProps) => {
+const ProductList = ({ searchQuery, onAddToCart, products }: ProductListProps) => {
   return (
     <section className="products grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
       {products.length === 0 ? (
