@@ -38,7 +38,7 @@ export default function OrdersPage() {
           {orders.length > 0 ? (
             orders.map((order) => (
               <Card key={order.id} className="p-4 border border-gray-300 rounded-lg shadow-sm">
-                <h2 className="text-lg font-semibold">Pedido #{order.id}</h2>
+                <h2 className="text-lg font-semibold">Pedido</h2>
                 <p className="text-sm text-gray-600">Data: {order.date}</p>
                 <p className="text-sm text-gray-600">Status: <span className="font-medium text-blue-600">{order.status}</span></p>
                 <p className="text-sm text-gray-600">Total: <span className="font-medium">R$ {order.total.toFixed(2)}</span></p>
@@ -55,7 +55,6 @@ export default function OrdersPage() {
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 font-semibold mt-2">Valor Total: R$ {(order.total).toFixed(2)}</p>
-                <Button className="mt-4">Ver Detalhes</Button>
               </Card>
             ))
           ) : (
