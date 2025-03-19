@@ -11,16 +11,18 @@ import { Button } from "./ui/button";
 interface ProductListProps {
   searchQuery: string;
   onAddToCart: (product: Product) => void;
-  products: Product[]; // Recebe os produtos corretamente
+  products: Product[]; 
 }
 
 const ProductList = ({ searchQuery, onAddToCart, products }: ProductListProps) => {
+  const filteredProducts = products.filter((product) => product.stock >= 1);
+
   return (
     <section className="products grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-      {products.length === 0 ? (
+      {filteredProducts.length === 0 ? (
         <p className="text-center col-span-full text-gray-500">Nenhum produto encontrado.</p>
       ) : (
-        products.map((product) => (
+        filteredProducts.map((product) => (
           <div key={product.id} className="product bg-white shadow-md rounded-lg p-4 flex flex-col items-center">
             <div className="image-container w-full flex justify-center">
               <Image

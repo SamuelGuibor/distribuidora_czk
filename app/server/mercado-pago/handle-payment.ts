@@ -35,6 +35,27 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
       });
 
       console.log(`✅ Pagamento ${paymentId} atualizado para COMPLETED.`);
+      const orderItems = await db.orderItem.findMany({
+        where: { orderId },
+        include: { product: true },
+      });
+
+      console.log(`📦 Pedido contém ${orderItems.length} itens. Atualizando estoque...`);
+
+      for (const item of orderItems) {
+        console.log(`🔹 Produto ID: ${item.productId}, Quantidade comprada: ${item.quantity}`);
+
+        const updatedProduct = await db.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+
+        console.log(`✅ Estoque atualizado para Produto ID ${item.productId}. Novo estoque: ${updatedProduct.stock}`);
+      }
 
       await db.order.update({
         where: { id: orderId },
