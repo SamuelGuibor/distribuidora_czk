@@ -7,6 +7,7 @@ import { Product } from "@prisma/client";
 import { FaCartPlus } from "react-icons/fa";
 import Image from "next/image";
 import { Button } from "./ui/button";
+import { useSession } from "next-auth/react";
 
 interface ProductListProps {
   searchQuery: string;
@@ -15,7 +16,12 @@ interface ProductListProps {
 }
 
 const ProductList = ({ searchQuery, onAddToCart, products }: ProductListProps) => {
-  const filteredProducts = products.filter((product) => product.stock >= 1);
+  const { data: session } = useSession();
+
+  const filteredProducts = session?.user.role === "ADMIN" 
+  ? products 
+  : products.filter((product) => product.stock >= 1);
+
 
   return (
     <section className="products grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
